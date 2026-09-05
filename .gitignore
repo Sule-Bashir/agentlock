@@ -17,3 +17,5 @@ venv/
 .vscode/
 
 .DS_Store
+
+build/
