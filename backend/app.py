@@ -1,11 +1,24 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+
 from backend.anomaly import calculate_risk
 from backend.models import TransactionRequest, RiskResponse
+
 
 app = FastAPI(
     title="AgentLock API",
     description="Behavioral circuit breaker API for autonomous Web3 agents",
     version="0.1.0",
+)
+
+
+# Allow the local AgentLock dashboard to communicate with the API.
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 

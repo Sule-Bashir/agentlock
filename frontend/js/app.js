@@ -6,6 +6,33 @@ const riskScoreEl = document.getElementById("risk-score");
 const decisionEl = document.getElementById("decision");
 const reasonsEl = document.getElementById("reasons");
 
+function setStatus(status, danger = false) {
+  statusEl.textContent = status;
+
+  if (danger) {
+    indicatorEl.style.background = "#ff4d6d";
+    indicatorEl.style.boxShadow = "0 0 16px #ff4d6d";
+  } else {
+    indicatorEl.style.background = "#32d583";
+    indicatorEl.style.boxShadow = "0 0 16px #32d583";
+  }
+}
+
+function showReasons(reasons) {
+  reasonsEl.innerHTML = "";
+
+  if (!reasons || reasons.length === 0) {
+    reasonsEl.innerHTML = "<li>No anomalies detected.</li>";
+    return;
+  }
+
+  reasons.forEach((reason) => {
+    const li = document.createElement("li");
+    li.textContent = reason;
+    reasonsEl.appendChild(li);
+  });
+}
+
 async function analyze(data) {
   try {
     const response = await fetch(`${API_URL}/analyze`, {
@@ -26,33 +53,25 @@ async function analyze(data) {
     decisionEl.textContent = result.decision;
 
     if (result.decision === "FREEZE") {
-      statusEl.textContent = "FROZEN";
-      indicatorEl.style.background = "#ff4d6d";
-      indicatorEl.style.boxShadow = "0 0 16px #ff4d6d";
+      setStatus("FROZEN", true);
     } else {
-      statusEl.textContent = "ACTIVE";
-      indicatorEl.style.background = "#32d583";
-      indicatorEl.style.boxShadow = "0 0 16px #32d583";
+      setStatus("ACTIVE", false);
     }
 
-    reasonsEl.innerHTML = "";
+    showReasons(result.reasons);
 
-    if (result.reasons.length === 0) {
-      reasonsEl.innerHTML = "<li>No anomalies detected.</li>";
-    } else {
-      result.reasons.forEach((reason) => {
-        const li = document.createElement("li");
-        li.textContent = reason;
-        reasonsEl.appendChild(li);
-      });
-    }
   } catch (error) {
-    statusEl.textContent = "API ERROR";
+    setStatus("API ERROR", true);
     decisionEl.textContent = error.message;
+
+    reasonsEl.innerHTML = "<li>Unable to reach AgentLock API.</li>";
+
     console.error(error);
   }
 }
 
+
+// Normal transaction
 document.getElementById("normal-btn").addEventListener("click", () => {
   analyze({
     amount: 50,
@@ -62,6 +81,8 @@ document.getElementById("normal-btn").addEventListener("click", () => {
   });
 });
 
+
+// Attack burst
 document.getElementById("attack-btn").addEventListener("click", () => {
   analyze({
     amount: 50,
@@ -69,4 +90,18 @@ document.getElementById("attack-btn").addEventListener("click", () => {
     transactions_in_window: 3,
     max_transactions_in_window: 3
   });
+});
+
+
+// Resume agent
+document.getElementById("resume-btn").addEventListener("click", () => {
+  setStatus("ACTIVE", false);
+
+  riskScoreEl.textContent = "0";
+  decisionEl.textContent = "Agent resumed";
+
+  showReasons([
+    "Behavioral circuit breaker reset.",
+    "Agent is ready for new transactions."
+  ]);
 });
