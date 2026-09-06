@@ -1,0 +1,121 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: Inter, system-ui, sans-serif;
+  background: #0b1020;
+  color: #f5f7ff;
+}
+
+.container {
+  width: min(900px, 92%);
+  margin: 0 auto;
+  padding: 48px 0;
+}
+
+header {
+  margin-bottom: 32px;
+}
+
+.eyebrow,
+.label {
+  font-size: 0.75rem;
+  letter-spacing: 0.12em;
+  color: #8f9bb8;
+  font-weight: 700;
+}
+
+h1 {
+  margin: 8px 0;
+  font-size: 3rem;
+}
+
+.tagline {
+  color: #aeb8d0;
+  font-size: 1.1rem;
+}
+
+.status-card,
+.risk-card,
+.reasons-card {
+  background: #141b2f;
+  border: 1px solid #293450;
+  border-radius: 16px;
+  padding: 24px;
+  margin-bottom: 18px;
+}
+
+.status-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.status-card h2 {
+  margin: 8px 0 0;
+}
+
+.indicator {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #32d583;
+  box-shadow: 0 0 16px #32d583;
+}
+
+.risk-score {
+  font-size: 4rem;
+  font-weight: 800;
+  margin: 8px 0;
+}
+
+#decision {
+  font-weight: 700;
+}
+
+.controls {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  margin-bottom: 18px;
+}
+
+button {
+  border: 0;
+  border-radius: 12px;
+  padding: 16px;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  background: #ffffff;
+  color: #0b1020;
+}
+
+button:hover {
+  opacity: 0.9;
+}
+
+.reasons-card h3 {
+  margin-top: 0;
+}
+
+li {
+  margin: 10px 0;
+  color: #c4cce0;
+}
+
+@media (max-width: 600px) {
+  .container {
+    padding: 28px 0;
+  }
+
+  h1 {
+    font-size: 2.3rem;
+  }
+
+  .controls {
+    grid-template-columns: 1fr;
+  }
+}

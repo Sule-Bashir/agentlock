@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AgentLock — Behavioral Circuit Breaker</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <main class="container">
+    <header>
+      <p class="eyebrow">WEB3 AGENT SECURITY</p>
+      <h1>AgentLock</h1>
+      <p class="tagline">AI can act. AgentLock decides when it must stop.</p>
+    </header>
+
+    <section class="status-card">
+      <div>
+        <span class="label">AGENT STATUS</span>
+        <h2 id="status">READY</h2>
+      </div>
+      <div id="status-indicator" class="indicator"></div>
+    </section>
+
+    <section class="risk-card">
+      <span class="label">BEHAVIORAL RISK</span>
+      <div class="risk-score" id="risk-score">0</div>
+      <p id="decision">No transaction analyzed</p>
+    </section>
+
+    <section class="controls">
+      <button id="normal-btn">Simulate Normal Transaction</button>
+      <button id="attack-btn">Simulate Attack Burst</button>
+    </section>
+
+    <section class="reasons-card">
+      <h3>Decision Evidence</h3>
+      <ul id="reasons">
+        <li>No anomalies detected.</li>
+      </ul>
+    </section>
+  </main>
+
+  <script src="js/app.js"></script>
+</body>
+</html>
