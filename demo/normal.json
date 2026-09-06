@@ -1,0 +1,8 @@
+{
+  "scenario": "normal",
+  "description": "Agent performs transactions within its established behavioral baseline.",
+  "amount": 50,
+  "max_transaction": 100,
+  "transactions_in_window": 1,
+  "max_transactions_in_window": 3
+}

@@ -1,0 +1,8 @@
+{
+  "scenario": "attack",
+  "description": "Agent suddenly sends transactions at a rate beyond its established behavioral baseline.",
+  "amount": 50,
+  "max_transaction": 100,
+  "transactions_in_window": 3,
+  "max_transactions_in_window": 3
+}
