@@ -291,5 +291,3 @@ That distinction matters for autonomous systems because a compromised agent may 
 AgentLock turns that behavioral boundary into an enforceable on-chain circuit breaker.
 
 Built for the 3rd-Web-Hack: Hack the Web — Build solutions to existing Blockchain problems.
-
-Then **only run this verification command
