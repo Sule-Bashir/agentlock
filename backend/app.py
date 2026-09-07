@@ -281,7 +281,7 @@ def blockchain_authorize():
             ["node", "backend/authorize.cjs"],
             capture_output=True,
             text=True,
-            timeout=45,
+            timeout=90,
             env=os.environ.copy(),
         )
 
@@ -369,7 +369,7 @@ def blockchain_resume():
             ["node", "backend/resume.cjs"],
             capture_output=True,
             text=True,
-            timeout=45,
+            timeout=90,
             env=os.environ.copy(),
         )
 

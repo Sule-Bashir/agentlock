@@ -36,6 +36,10 @@ function showReasons(reasons) {
   });
 }
 
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 async function getBlockchainStatus() {
   const response = await fetch(
     `${API_URL}/blockchain/status`,
@@ -58,9 +62,11 @@ async function loadBlockchainStatus() {
     if (result.error) {
       setStatus("BLOCKCHAIN ERROR", true);
       decisionEl.textContent = result.error;
+
       showReasons([
         "Unable to read current AgentLock state."
       ]);
+
       return;
     }
 
@@ -197,9 +203,7 @@ async function waitForStateChange(
       return state;
     }
 
-    await new Promise(
-      (resolve) => setTimeout(resolve, 3000)
-    );
+    await sleep(3000);
   }
 
   throw new Error(
@@ -349,6 +353,8 @@ async function resumeAgent() {
   try {
     setStatus("RESUMING...", true);
 
+    riskScoreEl.textContent = "80";
+
     decisionEl.textContent =
       "Submitting on-chain recovery transaction...";
 
@@ -356,27 +362,60 @@ async function resumeAgent() {
       "Requesting AgentLock recovery..."
     ]);
 
-    const response = await fetch(
-      `${API_URL}/blockchain/resume`,
-      {
-        method: "POST",
-        cache: "no-store"
-      }
-    );
+    let result = null;
+    let lastError = null;
 
-    if (!response.ok) {
-      throw new Error(
-        `Resume API returned ${response.status}`
-      );
+    for (let attempt = 1; attempt <= 3; attempt++) {
+      try {
+        showReasons([
+          `Recovery attempt ${attempt}/3`,
+          "Submitting on-chain recovery transaction..."
+        ]);
+
+        const response = await fetch(
+          `${API_URL}/blockchain/resume`,
+          {
+            method: "POST",
+            cache: "no-store"
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error(
+            `Resume API returned ${response.status}`
+          );
+        }
+
+        const data = await response.json();
+
+        if (!data.success) {
+          throw new Error(
+            data.error ||
+            "Resume transaction failed"
+          );
+        }
+
+        result = data;
+        break;
+
+      } catch (error) {
+        lastError = error;
+
+        if (attempt < 3) {
+          showReasons([
+            `Recovery attempt ${attempt} failed.`,
+            error.message,
+            "Retrying..."
+          ]);
+
+          await sleep(4000);
+        }
+      }
     }
 
-    const result = await response.json();
-
-    if (!result.success) {
-      throw new Error(
-        result.error ||
-        "Resume transaction failed"
-      );
+    if (!result) {
+      throw lastError ||
+        new Error("Recovery transaction failed");
     }
 
     showReasons([
@@ -385,14 +424,25 @@ async function resumeAgent() {
       "Waiting for on-chain confirmation..."
     ]);
 
-    await new Promise(
-      (resolve) => setTimeout(resolve, 5000)
-    );
+    let state = null;
 
-    const state =
-      await getBlockchainStatus();
+    for (let attempt = 1; attempt <= 12; attempt++) {
+      await sleep(3000);
 
-    if (!state.active) {
+      state = await getBlockchainStatus();
+
+      if (state.active) {
+        break;
+      }
+
+      showReasons([
+        "Recovery transaction submitted.",
+        `Confirmation check ${attempt}/12`,
+        "Agent is still frozen. Waiting..."
+      ]);
+    }
+
+    if (!state || !state.active) {
       throw new Error(
         "Recovery transaction submitted but agent is still frozen."
       );
@@ -417,7 +467,8 @@ async function resumeAgent() {
 
     showReasons([
       "Unable to resume the agent.",
-      error.message
+      error.message,
+      "The agent remains protected on-chain."
     ]);
 
     console.error(error);
