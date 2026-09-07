@@ -67,8 +67,40 @@ function createContract(address, signerOrProvider) {
     );
 }
 
-async function deployContract(privateKey, rpcUrl) {
-    const wallet = createWallet(privateKey, rpcUrl);
+async function resumeAgent(
+    privateKey,
+    rpcUrl,
+    contractAddress,
+    agentAddress
+) {
+    const wallet = createWallet(
+        privateKey,
+        rpcUrl
+    );
+
+    const contract = createContract(
+        contractAddress,
+        wallet
+    );
+
+    const tx = await contract.resumeAgent(
+        agentAddress
+    );
+
+    return {
+        transactionHash: tx.hash,
+        agent: agentAddress
+    };
+}
+
+async function deployContract(
+    privateKey,
+    rpcUrl
+) {
+    const wallet = createWallet(
+        privateKey,
+        rpcUrl
+    );
 
     const factory = new ethers.ContractFactory(
         abi,
@@ -93,5 +125,6 @@ module.exports = {
     createProvider,
     createWallet,
     createContract,
+    resumeAgent,
     deployContract
 };

@@ -11,7 +11,7 @@ import subprocess
 app = FastAPI(
     title="AgentLock API",
     description="Behavioral circuit breaker API for autonomous Web3 agents",
-    version="0.4.0",
+    version="0.5.0",
 )
 
 
@@ -201,24 +201,14 @@ def blockchain_status():
             "contract_deployed": True,
             "registered": state["registered"],
             "active": state["active"],
-            "max_transaction_wei": state[
-                "max_transaction"
-            ],
-            "daily_limit_wei": state[
-                "daily_limit"
-            ],
-            "spent_today_wei": state[
-                "spent_today"
-            ],
-            "transaction_count": state[
-                "transaction_count"
-            ],
+            "max_transaction_wei": state["max_transaction"],
+            "daily_limit_wei": state["daily_limit"],
+            "spent_today_wei": state["spent_today"],
+            "transaction_count": state["transaction_count"],
             "max_transactions_per_window": state[
                 "max_transactions_per_window"
             ],
-            "window_duration": state[
-                "window_duration"
-            ],
+            "window_duration": state["window_duration"],
             "window_transaction_count": state[
                 "window_transaction_count"
             ],
@@ -237,5 +227,183 @@ def blockchain_status():
         return {
             "configured": True,
             "active": None,
+            "error": str(error),
+        }
+
+
+@app.post("/blockchain/authorize")
+def blockchain_authorize():
+    contract = os.environ.get(
+        "AGENTLOCK_CONTRACT_ADDRESS"
+    )
+
+    agent = os.environ.get("AGENT_ADDRESS")
+
+    private_key = os.environ.get("PRIVATE_KEY")
+    rpc_url = os.environ.get("RPC_URL")
+
+    recipient = os.environ.get(
+        "RECIPIENT_ADDRESS",
+        "0x2222222222222222222222222222222222222222"
+    )
+
+    amount = os.environ.get(
+        "AMOUNT_WEI",
+        "10000000000000"
+    )
+
+    if not contract:
+        return {
+            "success": False,
+            "error": "AGENTLOCK_CONTRACT_ADDRESS is not configured",
+        }
+
+    if not agent:
+        return {
+            "success": False,
+            "error": "AGENT_ADDRESS is not configured",
+        }
+
+    if not private_key:
+        return {
+            "success": False,
+            "error": "PRIVATE_KEY is not configured",
+        }
+
+    if not rpc_url:
+        return {
+            "success": False,
+            "error": "RPC_URL is not configured",
+        }
+
+    try:
+        result = subprocess.run(
+            ["node", "backend/authorize.cjs"],
+            capture_output=True,
+            text=True,
+            timeout=45,
+            env=os.environ.copy(),
+        )
+
+        if result.returncode != 0:
+            return {
+                "success": False,
+                "error": (
+                    result.stderr.strip()
+                    or "Authorization transaction failed"
+                ),
+            }
+
+        data = json.loads(result.stdout)
+
+        return {
+            "success": True,
+            "transactionHash": data["transactionHash"],
+            "agent": data["agent"],
+            "recipient": data["recipient"],
+            "amountWei": data["amountWei"],
+        }
+
+    except subprocess.TimeoutExpired:
+        return {
+            "success": False,
+            "error": "Authorization request timed out",
+        }
+
+    except json.JSONDecodeError:
+        return {
+            "success": False,
+            "error": "Invalid response from authorization bridge",
+        }
+
+    except Exception as error:
+        return {
+            "success": False,
+            "error": str(error),
+        }
+
+
+@app.post("/blockchain/resume")
+def blockchain_resume():
+    contract = os.environ.get(
+        "AGENTLOCK_CONTRACT_ADDRESS"
+    )
+
+    agent = os.environ.get("AGENT_ADDRESS")
+
+    private_key = os.environ.get("PRIVATE_KEY")
+    rpc_url = os.environ.get("RPC_URL")
+
+    if not contract:
+        return {
+            "success": False,
+            "error": (
+                "AGENTLOCK_CONTRACT_ADDRESS "
+                "is not configured"
+            ),
+        }
+
+    if not agent:
+        return {
+            "success": False,
+            "error": (
+                "AGENT_ADDRESS "
+                "is not configured"
+            ),
+        }
+
+    if not private_key:
+        return {
+            "success": False,
+            "error": "PRIVATE_KEY is not configured",
+        }
+
+    if not rpc_url:
+        return {
+            "success": False,
+            "error": "RPC_URL is not configured",
+        }
+
+    try:
+        result = subprocess.run(
+            ["node", "backend/resume.cjs"],
+            capture_output=True,
+            text=True,
+            timeout=45,
+            env=os.environ.copy(),
+        )
+
+        if result.returncode != 0:
+            return {
+                "success": False,
+                "error": (
+                    result.stderr.strip()
+                    or "Resume transaction failed"
+                ),
+            }
+
+        data = json.loads(result.stdout)
+
+        return {
+            "success": True,
+            "transactionHash": data["transactionHash"],
+            "agent": data["agent"],
+        }
+
+    except subprocess.TimeoutExpired:
+        return {
+            "success": False,
+            "error": "Resume request timed out",
+        }
+
+    except json.JSONDecodeError:
+        return {
+            "success": False,
+            "error": "Invalid response from resume bridge",
+        }
+
+    except Exception as error:
+        return {
+            "success": False,
             "error": str(error),
         }
