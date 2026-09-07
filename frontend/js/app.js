@@ -33,6 +33,49 @@ function showReasons(reasons) {
   });
 }
 
+async function loadBlockchainStatus() {
+  try {
+    const response = await fetch(`${API_URL}/blockchain/status`);
+
+    if (!response.ok) {
+      throw new Error(`Blockchain API returned ${response.status}`);
+    }
+
+    const result = await response.json();
+
+    if (!result.registered) {
+      setStatus("NOT REGISTERED", true);
+      decisionEl.textContent = "Agent is not registered";
+      showReasons(["Agent not found on AgentLock contract."]);
+      return;
+    }
+
+    if (result.active) {
+      setStatus("ACTIVE", false);
+      decisionEl.textContent = "On-chain agent is active";
+    } else {
+      setStatus("FROZEN", true);
+      decisionEl.textContent = "On-chain circuit breaker is engaged";
+    }
+
+    showReasons([
+      `On-chain transactions: ${result.transaction_count}`,
+      `Window transactions: ${result.window_transaction_count}`,
+      `Behavior limit: ${result.max_transactions_per_window}`
+    ]);
+
+  } catch (error) {
+    setStatus("API ERROR", true);
+    decisionEl.textContent = error.message;
+
+    showReasons([
+      "Unable to read AgentLock blockchain state."
+    ]);
+
+    console.error(error);
+  }
+}
+
 async function analyze(data) {
   try {
     const response = await fetch(`${API_URL}/analyze`, {
@@ -70,8 +113,6 @@ async function analyze(data) {
   }
 }
 
-
-// Normal transaction
 document.getElementById("normal-btn").addEventListener("click", () => {
   analyze({
     amount: 50,
@@ -81,8 +122,6 @@ document.getElementById("normal-btn").addEventListener("click", () => {
   });
 });
 
-
-// Attack burst
 document.getElementById("attack-btn").addEventListener("click", () => {
   analyze({
     amount: 50,
@@ -92,16 +131,8 @@ document.getElementById("attack-btn").addEventListener("click", () => {
   });
 });
 
-
-// Resume agent
 document.getElementById("resume-btn").addEventListener("click", () => {
-  setStatus("ACTIVE", false);
-
-  riskScoreEl.textContent = "0";
-  decisionEl.textContent = "Agent resumed";
-
-  showReasons([
-    "Behavioral circuit breaker reset.",
-    "Agent is ready for new transactions."
-  ]);
+  loadBlockchainStatus();
 });
+
+loadBlockchainStatus();
