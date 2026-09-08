@@ -1,3 +1,5 @@
+from dotenv import load_dotenv
+load_dotenv(override=True)
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from backend.anomaly import calculate_risk
@@ -38,7 +40,7 @@ def analyze_transaction(request: TransactionRequest):
         amount=request.amount,
         max_transaction=request.max_transaction,
         transactions_in_window=request.transactions_in_window,
-        max_transactions_in_window=request.max_transactions_in_window,
+        max_transactions_in_window=request.max_transactions_per_window,
     )
 
 
